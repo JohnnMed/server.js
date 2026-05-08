@@ -1,42 +1,26 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ponto Eletrônico - Nome da Empresa</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; }
-        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <h1>Ponto - Help Rest</h1>
-    <input type="text" id="nomeFuncionario" placeholder="Seu Nome Completo"><br><br>
-    <button onclick="registrarPonto()">Bater Ponto</button>
-    <p id="status"></p>
+const express = require('express');
+const { createClient } = require('@supabase/supabase-js');
 
-    <script>
-        function registrarPonto() {
-            const nome = document.getElementById('nomeFuncionario').value;
-            if (!nome) return alert('Digite seu nome!');
-            
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const dados = {
-                    nome: nome,
-                    data: new Date().toLocaleDateString(),
-                    hora: new Date().toLocaleTimeString(),
-                    localizacao: `${pos.coords.latitude}, ${pos.coords.longitude}`
-                };
+const app = express();
+const port = process.env.PORT || 3000;
 
-                fetch('/bater-ponto', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(dados)
-                }).then(() => {
-                    document.getElementById('status').innerText = "Ponto batido com sucesso!";
-                });
-            });
-        }
-    </script>
-</body>
-</html>
+// COLA AQUI O QUE COPIASTE DO SUPABASE
+const supabaseUrl = 'AQUI_COLA_A_TUA_URL'; 
+const supabaseKey = 'AQUI_COLA_A_TUA_PUBLISHABLE_KEY'; 
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+app.use(express.json());
+app.use(express.static('public'));
+
+app.post('/bater-ponto', async (req, res) => {
+    const { nome, data, hora, localizacao } = req.body;
+    const { error } = await supabase
+        .from('registros')
+        .insert([{ nome, data, hora, localizacao }]);
+
+    if (error) return res.status(500).json(error);
+    res.status(200).json({ status: 'OK' });
+});
+
+app.listen(port, () => console.log('Servidor ativo'));
