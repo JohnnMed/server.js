@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ponto Eletrônico</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 15px; font-size: 18px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        #status { margin-top: 15px; font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registro de Ponto</h1>
+        <input type="text" id="nomeFuncionario" placeholder="Nome do Funcionário">
+        <button onclick="registrarPonto()">REGISTRAR PONTO</button>
+        <p id="status"></p>
+    </div>
+    <script>
+        function registrarPonto() {
+            const nome = document.getElementById('nomeFuncionario').value;
+            const status = document.getElementById('status');
+            if (!nome) return alert('Por favor, digite seu nome!');
+            status.innerText = "Obtendo localização...";
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const dados = {
+                    nome: nome,
+                    data: new Date().toLocaleDateString('pt-BR'),
+                    hora: new Date().toLocaleTimeString('pt-BR'),
+                    localizacao: `Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`
+                };
+                fetch('/bater-ponto', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(dados)
+                }).then(() => {
+                    status.style.color = "green";
+                    status.innerText = "✅ Ponto registrado com sucesso!";
+                });
+            }, () => {
+                status.style.color = "red";
+                status.innerText = "❌ GPS necessário!";
+            });
+        }
+    </script>
+</body>
+</html>
